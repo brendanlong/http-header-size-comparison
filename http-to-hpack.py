@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 import argparse
 from hpack import hpack
+import logging
 import os
 import random
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
+
+
+HTTP2_FRAME_OVERHEAD = 9 # See section 4.1: Frame Format
+
 
 
 def shuffle_string(string):
@@ -33,17 +38,35 @@ def read_headers(filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("http_header_files", nargs="+")
+    parser.add_argument("--verbose", "-v", action="store_true", default=False)
     args = parser.parse_args()
+
+    logging.basicConfig(
+        format='%(message)s',
+        level=logging.INFO if args.verbose else logging.WARNING)
 
     encoder = hpack.Encoder()
 
+    total_http1 = 0
+    total_http2 = 0
+
     for i, filename in enumerate(args.http_header_files, start=1):
-        print(filename)
+        logging.info(filename)
         http1_size, headers = read_headers(filename)
 
-        print("Header size for headers %s in HTTP/1.1: %s bytes" % (i, http1_size))
+        logging.info("Header size for headers %s in HTTP/1.1: %s bytes" % (i, http1_size))
 
         encoded_headers = [encoder.add((key.encode("UTF-8"), value.encode("UTF-8")))
                            for key, value in headers]
-        print("Header size for headers %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
-        print()
+        http2_size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
+        logging.info("Header size for headers %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
+        logging.info("")
+
+        total_http1 += http1_size
+        total_http2 += http2_size
+
+    num = len(args.http_header_files)
+
+    print("Summary")
+    print("Average HTTP/1.1 header size: %.0f bytes" % (total_http1 / num))
+    print("Average HTTP/2 header size: %.0f bytes" % (total_http2 / num))
