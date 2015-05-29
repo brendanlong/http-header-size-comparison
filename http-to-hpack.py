@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     num = len(args.http_header_files)
 
-    print("Summary")
+    logging.info("Summary")
     print("Average HTTP/1.1 header size: %.0f bytes" % (total_http1 / num))
     print("Average HTTP/2 header size: %.0f bytes" % (total_http2 / num))
     print("Average HTTP/2 header size excluding :path: %.0f bytes" % (total_http2_no_path / num))
