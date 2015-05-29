@@ -1,0 +1,10 @@
+GET /videoplayback?source=youtube&sparams=clen%2Cdur%2Cgcr%2Cgir%2Cid%2Cinitcwndbps%2Cip%2Cipbits%2Citag%2Ckeepalive%2Clmt%2Cmime%2Cmm%2Cms%2Cmv%2Cpl%2Crequiressl%2Csource%2Cupn%2Cexpire&requiressl=yes&gcr=us&itag=243&mm=31&ip=184.96.121.63&ipbits=0&fexp=3300009%2C3300101%2C3300132%2C3300137%2C3300161%2C3310697%2C3312210%2C916634%2C9407746%2C9408142%2C9408215%2C9408710%2C9408737%2C9408788%2C9412774%2C9413058%2C9413503%2C9415011%2C9415304%2C952612&pl=18&keepalive=yes&id=o-ADtSihXqkUBHalVHTckQ-SaTEHrzW66Utjd9nUEf10j2&mv=m&mt=1432921497&ms=au&key=yt5&mime=video%2Fwebm&expire=1432943182&upn=Ix443slFjHI&initcwndbps=901250&sver=3&clen=8795584&gir=yes&lmt=1411768687014133&dur=212.746&cpn=dSEfMza-b8qfnfP2&alr=yes&ratebypass=yes&signature=057D5EEA1B3010C2D5A1DC874B745F6B10DE2AA2.88F0895CA139451E5DA0C41320B2CC6ABF1F5E72&c=WEB&cver=html5&ir=1&rr=12&range=3291504-4697645 HTTP/1.1
+Host: r2---sn-qxo7sn7r.googlevideo.com
+Connection: keep-alive
+Origin: https://www.youtube.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36
+Accept: */*
+X-Client-Data: CKm1yQEIhbbJAQiktskBCKm2yQEIwbbJAQjpiMoBCNKUygE=
+Referer: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: en-US,en;q=0.8

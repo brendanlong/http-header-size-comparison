@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Content-Type: video/webm
+Last-Modified: Fri, 26 Sep 2014 21:58:07 GMT
+Date: Fri, 29 May 2015 17:47:10 GMT
+Expires: Fri, 29 May 2015 17:47:10 GMT
+Cache-Control: private, max-age=21252
+Accept-Ranges: bytes
+Content-Length: 1400934
+Connection: keep-alive
+Alternate-Protocol: 443:quic,p=0.01
+Access-Control-Allow-Origin: https://www.youtube.com
+Access-Control-Allow-Credentials: true
+Timing-Allow-Origin: https://www.youtube.com
+Access-Control-Expose-Headers: Client-Protocol
+X-Content-Type-Options: nosniff
+Server: gvs 1.0

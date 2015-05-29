@@ -1,0 +1,10 @@
+GET /videoplayback?id=o-AMeWenDYa309rl6k2LL_cFV6OvIcLpBd569F3mclE88G&expire=1432943184&mm=31&ms=au&pl=18&mv=m&ipbits=0&ip=184.96.121.63&mt=1432921497&dur=29.988&lmt=1432229686863006&source=youtube&clen=1211379&key=yt5&mime=video%2Fwebm&gir=yes&requiressl=yes&initcwndbps=901250&sver=3&fexp=3300009%2C3300101%2C3300132%2C3300137%2C3300161%2C3310697%2C3312210%2C916634%2C9407746%2C9408142%2C9408215%2C9408710%2C9408737%2C9408788%2C9412774%2C9413058%2C9413503%2C9415011%2C9415304%2C952612&sparams=clen%2Cctier%2Cdur%2Cgir%2Cid%2Cinitcwndbps%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cms%2Cmv%2Cpl%2Crequiressl%2Csource%2Cupn%2Cexpire&signature=D14AFCF4AAEBDCB5720575DBA485B91959A042B9.32441FF6369F2CB53409722A132C29E10DBAAE09&itag=243&ctier=L&upn=HW6VvdEQlSk&cpn=bJM7QcFNJQ-4Kf4e&alr=yes&keepalive=yes&ratebypass=yes&c=WEB&cver=html5&range=0-341 HTTP/1.1
+Host: r5---sn-qxo7sn7z.googlevideo.com
+Connection: keep-alive
+Origin: https://www.youtube.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36
+Accept: */*
+X-Client-Data: CKm1yQEIhbbJAQiktskBCKm2yQEIwbbJAQjpiMoBCNKUygE=
+Referer: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: en-US,en;q=0.8
