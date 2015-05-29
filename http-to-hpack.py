@@ -35,13 +35,27 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     encoder = hpack.Encoder()
+    sorted_encoder = hpack.Encoder()
 
     for i, filename in enumerate(args.http_header_files, start=1):
+        print(filename)
         http1_size, headers = read_headers(filename)
 
-        print("Header size for header %s in HTTP/1.1: %s bytes" % (i, http1_size))
+        print("Header size for headers %s in HTTP/1.1: %s bytes" % (i, http1_size))
 
         encoded_headers = [encoder.add((key.encode("UTF-8"), value.encode("UTF-8")))
                            for key, value in headers]
-        print("Header size for header %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
+        print("Header size for headers %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
+
+        # Sort query string to make it easier to compress repeatedly
+        path = headers[1][1]
+        parts = urlparse(path)
+        query = parse_qs(parts.query)
+        sorted_query = [(key, value[0]) for key, value in sorted(query.items())]
+        sorted_query.sort(key=lambda x: x[0] == "id")
+        headers[1] = ":path", urlunparse(("", "", parts.path, "", urlencode(sorted_query), ""))
+
+        encoded_headers = [sorted_encoder.add((key.encode("UTF-8"), value.encode("UTF-8")))
+                           for key, value in headers]
+        print("Header size for headers (using sorted query string) %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
         print()
