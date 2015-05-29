@@ -13,13 +13,14 @@ def shuffle_string(string):
 
 
 def read_headers(filename):
-    size = 0
+    size = 2
     headers = []
     with open(filename) as f:
         for line in f:
-            size += len(line) + 1
+            line = line.strip()
             if not line:
                 break
+            size += len(line) + 2
             if not headers:
                 method, path, _ = line.split(" ")
                 headers.append((":method", method))
