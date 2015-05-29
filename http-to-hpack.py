@@ -46,9 +46,11 @@ if __name__ == "__main__":
         level=logging.INFO if args.verbose else logging.WARNING)
 
     encoder = hpack.Encoder()
+    encoder_no_path = hpack.Encoder()
 
     total_http1 = 0
     total_http2 = 0
+    total_http2_no_path = 0
 
     for i, filename in enumerate(args.http_header_files, start=1):
         logging.info(filename)
@@ -59,14 +61,23 @@ if __name__ == "__main__":
         encoded_headers = [encoder.add((key.encode("UTF-8"), value.encode("UTF-8")))
                            for key, value in headers]
         http2_size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
-        logging.info("Header size for headers %s in HTTP/2: %s bytes" % (i, sum(map(len, encoded_headers))))
-        logging.info("")
+        logging.info("Header size for headers %s in HTTP/2: %s bytes" % (i, http2_size))
 
+        encoded_headers = [encoder_no_path.add((key.encode("UTF-8"), value.encode("UTF-8")))
+                           for key, value in headers
+                           if key != ":path"]
+        http2_no_path_size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
+        logging.info("Header size for headers %s excluding :path in HTTP/2: %s bytes" % (i, http2_no_path_size))
+
+
+        logging.info("")
         total_http1 += http1_size
         total_http2 += http2_size
+        total_http2_no_path += http2_no_path_size
 
     num = len(args.http_header_files)
 
     print("Summary")
     print("Average HTTP/1.1 header size: %.0f bytes" % (total_http1 / num))
     print("Average HTTP/2 header size: %.0f bytes" % (total_http2 / num))
+    print("Average HTTP/2 header size excluding :path: %.0f bytes" % (total_http2_no_path / num))
