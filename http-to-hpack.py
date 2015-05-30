@@ -45,39 +45,47 @@ if __name__ == "__main__":
         format='%(message)s',
         level=logging.INFO if args.verbose else logging.WARNING)
 
-    encoder = hpack.Encoder()
-    encoder_no_path = hpack.Encoder()
+    tests = ("http1", "http2", "http2_no_path", "k_push_5", "k_push_inf")
+    encoders = {k: hpack.Encoder() for k in tests if k != "http1"}
+    total = {k: 0 for k in tests}
 
-    total_http1 = 0
-    total_http2 = 0
-    total_http2_no_path = 0
-
-    for i, filename in enumerate(args.http_header_files, start=1):
+    for i, filename in enumerate(args.http_header_files):
         logging.info(filename)
-        http1_size, headers = read_headers(filename)
+        size, headers = read_headers(filename)
 
-        logging.info("Header size for headers %s in HTTP/1.1: %s bytes" % (i, http1_size))
+        total["http1"] += size
+        logging.info("Header size for headers %s in HTTP/1.1: %s bytes" % (i, size))
 
-        encoded_headers = [encoder.add((key.encode("UTF-8"), value.encode("UTF-8")))
+        encoded_headers = [encoders["http2"].add((key.encode("UTF-8"), value.encode("UTF-8")))
                            for key, value in headers]
-        http2_size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
-        logging.info("Header size for headers %s in HTTP/2: %s bytes" % (i, http2_size))
+        size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
+        total["http2"] += size
+        logging.info("Header size for headers %s in HTTP/2: %s bytes" % (i, size))
 
-        encoded_headers = [encoder_no_path.add((key.encode("UTF-8"), value.encode("UTF-8")))
+        encoded_headers = [encoders["http2_no_path"].add((key.encode("UTF-8"), value.encode("UTF-8")))
                            for key, value in headers
                            if key != ":path"]
-        http2_no_path_size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
-        logging.info("Header size for headers %s excluding :path in HTTP/2: %s bytes" % (i, http2_no_path_size))
+        size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
+        total["http2_no_path"] += size
+        logging.info("Header size for headers %s excluding :path in HTTP/2: %s bytes" % (i, size))
 
+        if i % 5 == 0:
+            encoded_headers = [encoders["k_push_5"].add((key.encode("UTF-8"), value.encode("UTF-8")))
+                               for key, value in headers]
+            size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
+            total["k_push_5"] += size
+            logging.info("Header size for headers %s in HTTP/2 + K-Push (K=5): %s bytes" % (i, size))
+            if i == 0:
+                total["k_push_inf"] = size
+                logging.info("Header size for headers %s excluding :path in HTTP/2 + K-Push (K=inf): %s bytes" % (i, size))
 
         logging.info("")
-        total_http1 += http1_size
-        total_http2 += http2_size
-        total_http2_no_path += http2_no_path_size
 
     num = len(args.http_header_files)
 
     logging.info("Summary")
-    print("Average HTTP/1.1 header size: %.0f bytes" % (total_http1 / num))
-    print("Average HTTP/2 header size: %.0f bytes" % (total_http2 / num))
-    print("Average HTTP/2 header size excluding :path: %.0f bytes" % (total_http2_no_path / num))
+    print("HTTP/1.1 header size: %s bytes total, %.0f bytes average" % (total["http1"], total["http1"] / num))
+    print("HTTP/2 header size: %s bytes total, %.0f bytes average" % (total["http2"], total["http2"] / num))
+    print("HTTP/2 header size excluding :path: %s bytes total, %.0f bytes average" % (total["http2_no_path"], total["http2_no_path"] / num))
+    print("HTTP/2 header size using K-Push (K=5): %s bytes total, %.0f bytes average" % (total["k_push_5"], total["k_push_5"] / num))
+    print("HTTP/2 header size using K-Push (K=infinity): %s bytes total, %.0f bytes average" % (total["k_push_inf"], total["k_push_inf"] / num))
