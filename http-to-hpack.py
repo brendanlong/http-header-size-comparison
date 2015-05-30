@@ -72,6 +72,7 @@ if __name__ == "__main__":
         if i % 5 == 0:
             encoded_headers = [encoders["k_push_5"].add((key.encode("UTF-8"), value.encode("UTF-8")))
                                for key, value in headers]
+            encoded_headers.append(encoders["k_push_5"].add((b"DASH-PUSH", b"type=push-next,params=K:5")))
             size = sum(map(len, encoded_headers)) + HTTP2_FRAME_OVERHEAD
             total["k_push_5"] += size
             logging.info("Header size for headers %s in HTTP/2 + K-Push (K=5): %s bytes" % (i, size))
