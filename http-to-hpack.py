@@ -63,10 +63,11 @@ class HTTP1Test(Test):
 
 
 class HTTP2Test(Test):
-    def __init__(self, description, k=None):
+    def __init__(self, description, k=None, literal_path=False):
         super().__init__(description)
         self.encoder = hpack.Encoder()
         self.k = k
+        self.literal_path = literal_path
 
     def encode(self, headers):
         self.num += 1
@@ -78,7 +79,12 @@ class HTTP2Test(Test):
                 return
             headers = headers[:]
             headers.append(("DASH-PUSH", "type=push-next,params=K:%s" % self.k))
-        encoded = self.encoder.encode(headers_as_utf8(headers))
+        encoded = []
+        for key, value in headers_as_utf8(headers):
+            if self.literal_path and key == b":path":
+                encoded.extend(self.encoder._encode_literal(key, value, False, huffman=True))
+            else:
+                encoded.extend(self.encoder.add((key, value), huffman=True))
         size = len(encoded) + HTTP2_REQUEST_OVERHEAD
         self.total += size
         self.print_size(size)
@@ -124,9 +130,12 @@ if __name__ == "__main__":
     tests = [
         HTTP1Test("HTTP/1"),
         HTTP2Test("HTTP/2"),
+        HTTP2Test("HTTP/2 with literal :path", literal_path=True),
         HTTP2TestNoPath("HTTP/2 excluding :path"),
         HTTP2Test("HTTP/2 + K-Push (K=5)", k=5),
         HTTP2Test("HTTP/2 + K-Push (K=infinity)", k=0),
+        #HTTP2Test("HTTP/2 + K-Push and literal :path (K=5)", k=5, literal_path=True),
+        #HTTP2Test("HTTP/2 + K-Push and literal :path (K=infinity)", k=0, literal_path=True),
         WebSocketTest("FDH WebSocket (K=1)", k=1),
         WebSocketTest("FDH WebSocket (K=5)", k=5),
         WebSocketTest("FDH WebSocket (K=infinity)", k=0)
