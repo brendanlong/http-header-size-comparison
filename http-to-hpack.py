@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 from hpack import hpack
 import json
 import logging
@@ -11,25 +12,38 @@ from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 HTTP2_FRAME_OVERHEAD = 9 # See HTTP/2 section 4.1: Frame Format
 HTTP2_HEADERS_OVERHEAD = 1 # See HTTP/2 section 6.1: DATA
 HTTP2_REQUEST_OVERHEAD = HTTP2_FRAME_OVERHEAD * 2 + HTTP2_HEADERS_OVERHEAD
+MAXIMUM_PACKET_SIZE = 1500 # Ethernet
+MINIMUM_ACK_SIZE = 40
 WEBSOCKET_FRAME_OVERHEAD = 4 # See FDH section 8.2.2: Frame Format and Semantics
 
 
+def list_files(pattern):
+    files = glob.glob(pattern)
+    files.sort()
+    return files
+
+
 def read_headers(filename):
-    size = 2
     headers = []
     with open(filename) as f:
         for line in f:
             line = line.strip()
             if not line:
                 break
-            size += len(line) + 2
             if not headers:
                 method, path, _ = line.split(" ")
                 headers.append((":method", method))
                 headers.append((":path", path))
             else:
                 headers.append([v.strip() for v in line.split(":", maxsplit=1)])
-    return size, headers
+    return headers
+
+
+def read_content_length(filename):
+    with open(filename) as f:
+        for line in f:
+            if line.lower().startswith("content-length"):
+                return int(line.split(":", maxsplit=1)[1])
 
 
 def headers_as_utf8(headers):
@@ -45,9 +59,9 @@ class Test(object):
     def print_size(self, size):
         logging.info("Header size for headers in %s: %s bytes" % (self.description, size))
 
-    def print_total(self):
-        print("%s: %s bytes total, %.0f bytes average" % \
-            (self.description, self.total, self.total / self.num))
+    def print_total(self, ack):
+        print("%s: %s bytes total, %.0f bytes average (%.0f bytes with ACK)" % \
+            (self.description, self.total, self.total / self.num, ack + (self.total / self.num)))
 
 
 class HTTP1Test(Test):
@@ -111,7 +125,7 @@ class WebSocketTest(Test):
         data = {
             "PushType": "push-next",
             "PushParams": "K:%s" % self.k,
-            "URL": path # Should this be fully-qualified?
+            "URL": headers[1][1] # Should this be fully-qualified?
         }
         size = len(json.dumps(data)) + WEBSOCKET_FRAME_OVERHEAD
         self.total += size
@@ -119,7 +133,8 @@ class WebSocketTest(Test):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("http_header_files", nargs="+")
+    parser.add_argument("request_files", help="Pattern for header files. Example: req.*.txt")
+    parser.add_argument("response_files", help="Pattern for header files. Example: res.*.txt")
     parser.add_argument("--verbose", "-v", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -141,18 +156,27 @@ if __name__ == "__main__":
         WebSocketTest("FDH WebSocket (K=infinity)", k=0)
     ]
 
-    for i, filename in enumerate(args.http_header_files):
-        logging.info(filename)
-        size, headers = read_headers(filename)
-        path = headers[1][1]
+    ack_total = 0
+    n = 0
+    for i, (request, response) in enumerate(zip(list_files(args.request_files), list_files(args.response_files))):
+        logging.info("%s - %s", request, response)
 
+        headers = read_headers(request)
         for test in tests:
             test.encode(headers)
 
-        logging.info("")
+        content_size = read_content_length(response)
+        num_packets = content_size / MAXIMUM_PACKET_SIZE
+        num_acks = num_packets / 2
+        ack_size = num_acks * MINIMUM_ACK_SIZE
+        ack_total += ack_size
+        logging.info("Sending %.0f bytes requires %.0f packets, %.0f 40-byte acks, or %.0f bytes of acks" % \
+            (content_size, num_packets, num_acks, ack_size))
 
-    num = len(args.http_header_files)
+        logging.info("")
+        n += 1
 
     logging.info("Summary")
     for test in tests:
-        test.print_total()
+        test.print_total(ack_total / n)
+    print("TCP ACK packets: %.0f bytes total, %.0f bytes average" % (ack_total, ack_total / n))
