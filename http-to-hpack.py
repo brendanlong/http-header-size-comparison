@@ -4,6 +4,7 @@ import glob
 from hpack import hpack
 import json
 import logging
+import math
 import os
 import random
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
@@ -167,10 +168,10 @@ if __name__ == "__main__":
 
         content_size = read_content_length(response)
         num_packets = content_size / MAXIMUM_PACKET_SIZE
-        num_acks = num_packets / 2
+        num_acks = math.ceil(num_packets / 2)
         ack_size = num_acks * MINIMUM_ACK_SIZE
         ack_total += ack_size
-        logging.info("Sending %.0f bytes requires %.0f packets, %.0f 40-byte acks, or %.0f bytes of acks" % \
+        logging.info("Sending %.0f bytes requires %.0f packets, %s 40-byte acks, or %.0f bytes of acks" % \
             (content_size, num_packets, num_acks, ack_size))
 
         logging.info("")
